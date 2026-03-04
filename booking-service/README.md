@@ -22,7 +22,7 @@ The system ensures:
 
 ## API Endpoints
 
-### 1️⃣ Create Booking
+### 1. Create Booking
 
 **POST /bookings**
 
@@ -45,7 +45,7 @@ The system ensures:
 - Returns 200 OK if a booking with the same booking_id already exists (idempotency).
 - Returns 400 Bad Request if start >= end.
 
-### 2️⃣ Retrieve Bookings by Resource and Date
+### 2️. Retrieve Bookings by Resource and Date
 
 **GET /bookings?resource_id=<id>&date=YYYY-MM-DD**
 
@@ -71,11 +71,11 @@ Returns:
 ]
 ```
 
-### 3️⃣ Delete Booking
+### 3️. Delete Booking
 
 **DELETE /bookings/{booking_id}**
 
-- Returns 204 No Content on success.
+- Returns 200 No Content on success.
 - Returns 404 Not Found if booking does not exist.
 
 ## Time Interval Handling
@@ -84,25 +84,19 @@ The system treats time intervals as:
 
 - Start inclusive, End exclusive
 - A booking occupies the interval: `[start, end)`
-
-This means:
-
 - A booking ending at 11:00 does NOT conflict with another starting at 11:00.
 - Overlap condition is defined as: `existing.start < new.end AND existing.end > new.start`
 
-This approach avoids ambiguity at boundary times and is standard in scheduling systems.
+This approach removes ambiguity at boundary times and is standard in scheduling systems.
 
 ## Idempotency Behavior
 
 The system guarantees idempotent booking creation based on booking_id.
 
 - If the same booking_id is submitted multiple times:
-  - The booking is only created once.
-  - Subsequent identical requests return 200 OK.
   - No duplicate rows are created.
-- This is enforced via:
-  - A unique database constraint on booking_id
-  - Explicit lookup before insertion
+  - Subsequent identical requests return 200 OK.
+- This is enforced with a unique database constraint on booking_id and explicit lookup before insertion
 
 ## Concurrency Handling
 
@@ -112,11 +106,7 @@ To prevent race conditions (e.g., two overlapping bookings submitted simultaneou
 - Uses BEGIN IMMEDIATE to acquire a write lock in SQLite
 - Performs overlap check and insert within the same transaction
 
-This ensures:
-
-- Only one overlapping booking can succeed
-- The other request receives 409 Conflict
-- Concurrency is validated via automated multithreaded tests.
+This makes it so that only one overlapping booking can succeed and the other request receives 409 Conflict
 
 ## Persistence Strategy
 
@@ -125,23 +115,14 @@ The system uses file-based SQLite (`sqlite:///./bookings.db`).
 **Why SQLite?**
 
 - Lightweight and embedded
-- No external dependencies
 - Data persists across server restarts
-- Sufficient for small-scale booking systems
-
-**Tradeoff:**
-
-- Limited scalability compared to PostgreSQL
-- Database-wide write locks (acceptable for small systems)
-- With more time, this could be migrated to PostgreSQL for improved concurrency handling.
+- recommended in the take home project requirements from MIC
 
 ## Design Decisions & Tradeoffs
 
-1. **SQLite for Simplicity**
-   - Chosen for portability and zero setup requirements.
-2. **Transaction-Based Concurrency**
+1. **Transaction-Based Concurrency**
    - Used BEGIN IMMEDIATE to ensure atomic overlap check and insert.
-   - Tradeoff: SQLite uses coarse locking; acceptable for this scale.
+   - Tradeoff: SQLite uses coarse locking but it is acceptable for this scale.
 3. **Start Inclusive, End Exclusive**
    - Prevents ambiguous boundary conflicts.
 4. **Explicit Overlap Query**
@@ -151,10 +132,10 @@ The system uses file-based SQLite (`sqlite:///./bookings.db`).
 
 The project includes automated tests covering:
 
-- ✔ Overlap Detection: Ensures overlapping bookings return 409.
-- ✔ Idempotency: Ensures duplicate booking_id returns 200. Ensures no duplicate records are created.
-- ✔ Basic API Behavior: Create booking success, Retrieve bookings, Delete booking, Validation errors.
-- ✔ Concurrency Test: Simulates simultaneous overlapping booking attempts. Verifies that only one succeeds.
+- Overlap Detection: Ensures overlapping bookings return 409.
+- Idempotency: Ensures duplicate booking_id returns 200. Ensures no duplicate records are created.
+- Concurrency Test: Simulates simultaneous overlapping booking attempts and verifies that only one succeeds.
+- Basic API Behavior: Create booking success, Retrieve bookings, Delete booking, Validation errors.
 
 The test database is reset before each test to ensure isolation.
 
@@ -175,7 +156,7 @@ uvicorn app.main:app --reload
 The API will be available at:
 
 - http://127.0.0.1:8000
-- Swagger UI: http://127.0.0.1:8000/docs
+- To run manual tests go to -> Swagger UI: http://127.0.0.1:8000/docs
 
 ## How to Run Tests
 
@@ -218,7 +199,7 @@ tests/
 
 ## Conclusion
 
-This implementation provides:
+This booking system project provides:
 
 - Correct overlap handling
 - Safe idempotent behavior
