@@ -1,0 +1,24 @@
+# Bytecode and test cache
+__pycache__/
+.pytest_cache/
+
+# SQLite database files
+bookings.db
+test.db
+
+# VS Code settings
+.vscode/
+
+# OS files
+*.DS_Store
+Thumbs.db
+
+# Python environment
+.env
+.venv/
+
+# Logs
+*.log
+
+# Other
+*.sqlite3
