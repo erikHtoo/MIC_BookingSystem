@@ -53,16 +53,14 @@ def get_bookings(
 ):
 
     bookings = crud.get_bookings_by_date(
-    db,
-    resource_id,
-    date_str
-)
+        db=db,
+        resource_id=resource_id,
+        date_str=date_str.isoformat(),
+    )
 
     return bookings
 
 # DELETE /bookings/{booking_id}
-from fastapi import HTTPException
-
 @app.delete("/bookings/{booking_id}")
 def delete_booking(booking_id: str, db: Session = Depends(database.get_db)):
     deleted = crud.delete_booking(db, booking_id)
