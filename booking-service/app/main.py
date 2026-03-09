@@ -15,8 +15,6 @@ models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
 
-
-
 ### POST /bookings
 
 @app.post("/bookings", response_model=schemas.Booking)
@@ -53,15 +51,12 @@ def get_bookings(
     date_str: date = Query(..., alias="date"),
     db: Session = Depends(database.get_db)
 ):
-    # Build day boundaries
-    day_start = datetime.combine(date_str, datetime.min.time())
-    day_end = day_start + timedelta(days=1)
 
-    bookings = db.query(models.Booking).filter(
-        models.Booking.resource_id == resource_id,
-        models.Booking.start < day_end,
-        models.Booking.end > day_start
-    ).all()
+    bookings = crud.get_bookings_by_date(
+    db,
+    resource_id,
+    date_str
+)
 
     return bookings
 

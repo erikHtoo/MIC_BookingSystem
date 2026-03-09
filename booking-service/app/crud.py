@@ -6,14 +6,12 @@
 # }
 
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, text
+from sqlalchemy import text
 from datetime import datetime, timedelta
 import app.models, app.schemas
-from sqlalchemy.exc import IntegrityError
 
 
 ### Create Booking
-
 def create_booking(db: Session, booking: app.schemas.BookingCreate):
     
     # Start IMMEDIATE transaction to prevent race condition
@@ -55,8 +53,6 @@ def create_booking(db: Session, booking: app.schemas.BookingCreate):
     db.refresh(new_booking)
 
     return new_booking, "created"
-
-
 
 ### Get bookings
 def get_bookings_by_date(db: Session, resource_id: str, date_str: str):
